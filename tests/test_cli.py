@@ -5,7 +5,7 @@ import zipfile
 
 import pytest
 
-import fileGenerator as fg
+from random_file_generator import cli as fg
 
 
 @pytest.mark.parametrize("text,expected", [("1024", 1024), ("1k", 1024), ("2M", 2 * 1024**2), ("1.5K", 1536)])

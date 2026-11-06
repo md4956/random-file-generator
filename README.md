@@ -21,11 +21,21 @@ By default every file is filled with cryptographically random bytes (`os.urandom
 - Python 3.9+
 - The `zip` command-line tool, *only* for `zip` archives (preinstalled on macOS and most Linux distributions; `sudo apt install zip` otherwise). `tar` and `tar.gz` use Python's standard library.
 
+## Installation
+
+```bash
+git clone https://github.com/md4956/random-file-generator.git
+cd random-file-generator
+pip install .          # installs the `random-file-generator` command
+```
+
+No install needed either: from the repo folder you can run `python -m random_file_generator ...` instead of `random-file-generator ...`.
+
 ## Usage
 
 ```text
-python fileGenerator.py files   <number> <size> [options]
-python fileGenerator.py archive <archives> <files-per-archive> <size> <format> [password] [options]
+random-file-generator files   <number> <size> [options]
+random-file-generator archive <archives> <files-per-archive> <size> <format> [password] [options]
 ```
 
 | Argument | Meaning |
@@ -45,7 +55,7 @@ Options (both modes):
 | `--seed N` | Reproducible data. Fast and repeatable, but **not** cryptographically secure |
 | `--pattern random\|zeros` | `random` (default) or all-zero bytes that compress extremely well |
 
-Run `python fileGenerator.py --help` (or `files --help` / `archive --help`) for the built-in help.
+Run `random-file-generator --help` (or `files --help` / `archive --help`) for the built-in help.
 
 > `size` is the size of each file *inside* an archive, not the size of the archive itself.
 
@@ -54,7 +64,7 @@ Run `python fileGenerator.py --help` (or `files --help` / `archive --help`) for 
 Create 5 files of 10 MiB each:
 
 ```bash
-python fileGenerator.py files 5 10M
+random-file-generator files 5 10M
 ```
 
 ```text
@@ -70,19 +80,19 @@ Checksums saved to: generated_20260101_120000_files_5_10M/SHA384SUMS
 Three `zip` archives, each containing 4 files of 2 MiB:
 
 ```bash
-python fileGenerator.py archive 3 4 2M zip
+random-file-generator archive 3 4 2M zip
 ```
 
 Two `tar.gz` archives with 10 files of 512 KiB each:
 
 ```bash
-python fileGenerator.py archive 2 10 512K tar.gz
+random-file-generator archive 2 10 512K tar.gz
 ```
 
 ### 3. Generate password-protected zips
 
 ```bash
-python fileGenerator.py archive 3 4 2M zip "s3cret"
+random-file-generator archive 3 4 2M zip "s3cret"
 ```
 
 Passwords are only supported for `zip`; using one with `tar`/`tar.gz` is rejected with an error.
@@ -91,13 +101,13 @@ Passwords are only supported for `zip`; using one with `tar`/`tar.gz` is rejecte
 
 ```bash
 # Same seed -> byte-identical files every time
-python fileGenerator.py files 3 1M --seed 42
+random-file-generator files 3 1M --seed 42
 
 # Highly compressible data (tar.gz will be tiny)
-python fileGenerator.py archive 1 5 10M tar.gz --pattern zeros
+random-file-generator archive 1 5 10M tar.gz --pattern zeros
 
 # Write somewhere else
-python fileGenerator.py files 10 100M --output-dir /mnt/scratch
+random-file-generator files 10 100M --output-dir /mnt/scratch
 ```
 
 ## Output
@@ -131,7 +141,7 @@ shasum -a 384 -c SHA384SUMS    # macOS
 ## Tests
 
 ```bash
-pip install pytest
+pip install ".[test]"
 pytest
 ```
 
@@ -145,4 +155,4 @@ pytest
 
 ## License
 
-No license has been specified yet; add one (e.g. MIT) if you want others to reuse this.
+Released under the [MIT License](LICENSE).

@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Generate files and archives filled with random data, with SHA-384 checksums."""
 from __future__ import annotations
 
@@ -195,6 +194,7 @@ def build_parser() -> argparse.ArgumentParser:
                         help="'zeros' makes highly compressible data (default: random)")
 
     parser = argparse.ArgumentParser(
+        prog="random-file-generator",
         description="Generate files and archives of random data with SHA-384 checksums.")
     sub = parser.add_subparsers(dest="mode", required=True)
 
