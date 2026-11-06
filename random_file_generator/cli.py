@@ -86,22 +86,24 @@ def sha384sum(path: Path) -> str:
 
 
 def create_zip(archive_path: Path, source_dir: Path, password: Optional[str] = None) -> None:
-    files = sorted(p for p in source_dir.iterdir() if p.is_file())
+    """Zip source_dir so that extraction yields a single top-level folder named after it."""
     if password:
         # The standard library cannot write encrypted zips; use the external tool.
-        cmd = ["zip", "-j", "-P", password, str(archive_path.resolve())]
-        cmd.extend(str(p) for p in files)
-        subprocess.run(cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
+        cmd = ["zip", "-r", "-P", password, str(archive_path.resolve()), source_dir.name]
+        subprocess.run(cmd, cwd=source_dir.parent, check=True,
+                       stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
         return
     with zipfile.ZipFile(archive_path, "w", zipfile.ZIP_DEFLATED) as zf:
-        for path in files:
-            zf.write(path, arcname=path.name)
+        for path in sorted(source_dir.iterdir()):
+            if path.is_file():
+                zf.write(path, arcname=f"{source_dir.name}/{path.name}")
 
 
 def create_tar(archive_path: Path, source_dir: Path, mode: str) -> None:
     with tarfile.open(archive_path, mode) as tf:
-        for path in sorted(p for p in source_dir.iterdir() if p.is_file()):
-            tf.add(path, arcname=path.name)
+        for path in sorted(source_dir.iterdir()):
+            if path.is_file():
+                tf.add(path, arcname=f"{source_dir.name}/{path.name}")
 
 
 def create_archive(fmt: str, archive_path: Path, source_dir: Path, password: Optional[str]) -> None:
@@ -172,7 +174,8 @@ def run_archive(args: argparse.Namespace, source: DataSource) -> None:
     manifest: list[str] = []
     for a in range(1, args.archives + 1):
         with tempfile.TemporaryDirectory(dir=out) as tmp:
-            tmp_dir = Path(tmp)
+            tmp_dir = Path(tmp) / f"archive_{a}"  # becomes the archive's top-level folder
+            tmp_dir.mkdir()
             for i in range(1, args.files_per_archive + 1):
                 write_unique_file(tmp_dir / f"file_{args.size_text}_{i}.bin", args.size, source)
             archive_path = out / f"archive_{a}.{args.format}"

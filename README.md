@@ -119,7 +119,7 @@ generated_<YYYYMMDD_HHMMSS>_<mode>_<arg1>_<arg2>/
 ```
 
 - `files` mode → `file_<size>_<n>.bin`
-- `archive` mode → `archive_<n>.<format>` (files inside are named `file_<size>_<n>.bin`)
+- `archive` mode → `archive_<n>.<format>`, each containing one folder `archive_<n>/` with the files `file_<size>_<n>.bin`
 - Both modes → `SHA384SUMS`, in the standard `<hash>  <name>` format
 
 Verify later, from inside the output folder:
@@ -150,7 +150,7 @@ pytest
 - With the default random data, a `tar.gz` is about the same size as the equivalent `tar`. Use `--pattern zeros` to test compression.
 - Zip passwords use the `zip` tool's `-P` option (legacy ZipCrypto encryption). This is fine for testing password prompts, **not** for protecting real data, and the password is visible in the process list while running.
 - Password-protected zips require the external `zip` binary, which is not available by default on Windows. Unprotected zips do not.
-- All archive formats store files flat (bare filenames, no folders or `./` prefix), so tar and zip contents are identical.
+- Every archive contains a single top-level folder named after itself (`archive_1.zip` extracts to `archive_1/`), so extracting many archives into one place stays organised. Archives from *different runs* share names (`archive_1`, …), so extract those into separate folders.
 - Archive mode needs room for the archives plus one batch of temporary files; the script checks free space first and exits if it is insufficient.
 - Generating very large files with `os.urandom` is limited by system randomness speed.
 

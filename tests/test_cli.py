@@ -65,9 +65,9 @@ def test_zip_with_password(tmp_path):
     assert fg.main(["archive", "1", "2", "1K", "zip", "pw", "--output-dir", str(tmp_path)]) == 0
     archive = next(tmp_path.glob("generated_*/archive_1.zip"))
     with zipfile.ZipFile(archive) as zf:
-        assert len(zf.namelist()) == 2
+        assert sorted(zf.namelist()) == ["archive_1/", "archive_1/file_1K_1.bin", "archive_1/file_1K_2.bin"]
         zf.setpassword(b"pw")
-        assert len(zf.read(zf.namelist()[0])) == 1024
+        assert len(zf.read("archive_1/file_1K_1.bin")) == 1024
 
 
 @pytest.mark.parametrize("argv", [
@@ -97,10 +97,10 @@ def test_plain_zip_needs_no_external_tool(tmp_path, monkeypatch):
     assert fg.main(["archive", "1", "2", "1K", "zip", "--output-dir", str(tmp_path)]) == 0
     archive = next(tmp_path.glob("generated_*/archive_1.zip"))
     with zipfile.ZipFile(archive) as zf:
-        assert sorted(zf.namelist()) == ["file_1K_1.bin", "file_1K_2.bin"]
+        assert sorted(zf.namelist()) == ["archive_1/file_1K_1.bin", "archive_1/file_1K_2.bin"]
 
 
-def test_tar_and_zip_have_same_flat_layout(tmp_path):
+def test_tar_and_zip_have_same_layout(tmp_path):
     for fmt in ("tar", "zip"):
         fg.main(["archive", "1", "2", "1K", fmt, "--seed", "1", "--output-dir", str(tmp_path / fmt)])
     tar_path = next((tmp_path / "tar").glob("generated_*/archive_1.tar"))
@@ -108,7 +108,7 @@ def test_tar_and_zip_have_same_flat_layout(tmp_path):
     with tarfile.open(tar_path) as tf:
         tar_names = sorted(tf.getnames())
     with zipfile.ZipFile(zip_path) as zf:
-        assert tar_names == sorted(zf.namelist()) == ["file_1K_1.bin", "file_1K_2.bin"]
+        assert tar_names == sorted(zf.namelist()) == ["archive_1/file_1K_1.bin", "archive_1/file_1K_2.bin"]
 
 
 def test_password_without_zip_tool_fails_cleanly(tmp_path, monkeypatch):
