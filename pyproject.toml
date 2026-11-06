@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "random-file-generator"
+version = "1.0.0"
+description = "Create files and archives of random data with SHA-384 checksums, for testing."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [{ name = "md4956" }]
+keywords = ["testing", "random", "file-generator", "archive", "checksum"]
+
+[project.optional-dependencies]
+test = ["pytest"]
+
+[project.scripts]
+random-file-generator = "random_file_generator.cli:main"
+
+[tool.setuptools]
+packages = ["random_file_generator"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
