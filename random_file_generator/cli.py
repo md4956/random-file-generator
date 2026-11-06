@@ -10,6 +10,7 @@ import subprocess
 import sys
 import tarfile
 import tempfile
+import zipfile
 from datetime import datetime
 from pathlib import Path
 from typing import Callable, Optional
@@ -85,17 +86,22 @@ def sha384sum(path: Path) -> str:
 
 
 def create_zip(archive_path: Path, source_dir: Path, password: Optional[str] = None) -> None:
-    cmd = ["zip", "-j", "-r"]
+    files = sorted(p for p in source_dir.iterdir() if p.is_file())
     if password:
-        cmd.extend(["-P", password])
-    cmd.append(str(archive_path.resolve()))
-    cmd.extend(str(p) for p in sorted(source_dir.iterdir()))
-    subprocess.run(cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
+        # The standard library cannot write encrypted zips; use the external tool.
+        cmd = ["zip", "-j", "-P", password, str(archive_path.resolve())]
+        cmd.extend(str(p) for p in files)
+        subprocess.run(cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
+        return
+    with zipfile.ZipFile(archive_path, "w", zipfile.ZIP_DEFLATED) as zf:
+        for path in files:
+            zf.write(path, arcname=path.name)
 
 
 def create_tar(archive_path: Path, source_dir: Path, mode: str) -> None:
     with tarfile.open(archive_path, mode) as tf:
-        tf.add(source_dir, arcname=".")
+        for path in sorted(p for p in source_dir.iterdir() if p.is_file()):
+            tf.add(path, arcname=path.name)
 
 
 def create_archive(fmt: str, archive_path: Path, source_dir: Path, password: Optional[str]) -> None:
@@ -224,8 +230,8 @@ def main(argv: Optional[list[str]] = None) -> int:
     if args.mode == "archive":
         if args.password and args.format != "zip":
             parser.error("password protection is only supported for zip archives")
-        if args.format == "zip" and shutil.which("zip") is None:
-            parser.error("the 'zip' command-line tool is required for zip archives but was not found")
+        if args.format == "zip" and args.password and shutil.which("zip") is None:
+            parser.error("the 'zip' command-line tool is required for password-protected zips but was not found")
 
     args.output_dir = args.output_dir.expanduser()
     source = make_data_source(args.pattern, args.seed)

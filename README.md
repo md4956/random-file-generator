@@ -19,7 +19,7 @@ By default every file is filled with cryptographically random bytes (`os.urandom
 ## Requirements
 
 - Python 3.9+
-- The `zip` command-line tool, *only* for `zip` archives (preinstalled on macOS and most Linux distributions; `sudo apt install zip` otherwise). `tar` and `tar.gz` use Python's standard library.
+- The `zip` command-line tool, *only* for **password-protected** zips (preinstalled on macOS and most Linux distributions; `sudo apt install zip` otherwise). Plain `zip`, `tar` and `tar.gz` use Python's standard library and work on Windows, macOS and Linux.
 
 ## Installation
 
@@ -149,7 +149,8 @@ pytest
 
 - With the default random data, a `tar.gz` is about the same size as the equivalent `tar`. Use `--pattern zeros` to test compression.
 - Zip passwords use the `zip` tool's `-P` option (legacy ZipCrypto encryption). This is fine for testing password prompts, **not** for protecting real data, and the password is visible in the process list while running.
-- The `zip` format requires the external `zip` binary; it is not available by default on Windows.
+- Password-protected zips require the external `zip` binary, which is not available by default on Windows. Unprotected zips do not.
+- All archive formats store files flat (bare filenames, no folders or `./` prefix), so tar and zip contents are identical.
 - Archive mode needs room for the archives plus one batch of temporary files; the script checks free space first and exits if it is insufficient.
 - Generating very large files with `os.urandom` is limited by system randomness speed.
 

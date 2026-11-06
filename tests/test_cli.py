@@ -90,3 +90,28 @@ def test_output_dirs_never_collide(tmp_path):
 def test_disk_space_check(tmp_path):
     with pytest.raises(SystemExit):
         fg.check_disk_space(tmp_path, 10**18)
+
+
+def test_plain_zip_needs_no_external_tool(tmp_path, monkeypatch):
+    monkeypatch.setattr(fg.shutil, "which", lambda _: None)
+    assert fg.main(["archive", "1", "2", "1K", "zip", "--output-dir", str(tmp_path)]) == 0
+    archive = next(tmp_path.glob("generated_*/archive_1.zip"))
+    with zipfile.ZipFile(archive) as zf:
+        assert sorted(zf.namelist()) == ["file_1K_1.bin", "file_1K_2.bin"]
+
+
+def test_tar_and_zip_have_same_flat_layout(tmp_path):
+    for fmt in ("tar", "zip"):
+        fg.main(["archive", "1", "2", "1K", fmt, "--seed", "1", "--output-dir", str(tmp_path / fmt)])
+    tar_path = next((tmp_path / "tar").glob("generated_*/archive_1.tar"))
+    zip_path = next((tmp_path / "zip").glob("generated_*/archive_1.zip"))
+    with tarfile.open(tar_path) as tf:
+        tar_names = sorted(tf.getnames())
+    with zipfile.ZipFile(zip_path) as zf:
+        assert tar_names == sorted(zf.namelist()) == ["file_1K_1.bin", "file_1K_2.bin"]
+
+
+def test_password_without_zip_tool_fails_cleanly(tmp_path, monkeypatch):
+    monkeypatch.setattr(fg.shutil, "which", lambda _: None)
+    with pytest.raises(SystemExit):
+        fg.main(["archive", "1", "1", "1K", "zip", "pw", "--output-dir", str(tmp_path)])
