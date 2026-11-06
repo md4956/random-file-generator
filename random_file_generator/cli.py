@@ -174,11 +174,11 @@ def run_archive(args: argparse.Namespace, source: DataSource) -> None:
     manifest: list[str] = []
     for a in range(1, args.archives + 1):
         with tempfile.TemporaryDirectory(dir=out) as tmp:
-            tmp_dir = Path(tmp) / f"archive_{a}"  # becomes the archive's top-level folder
+            tmp_dir = Path(tmp) / f"archive_{args.size_text}_{a}"  # becomes the archive's top-level folder
             tmp_dir.mkdir()
             for i in range(1, args.files_per_archive + 1):
                 write_unique_file(tmp_dir / f"file_{args.size_text}_{i}.bin", args.size, source)
-            archive_path = out / f"archive_{a}.{args.format}"
+            archive_path = out / f"{tmp_dir.name}.{args.format}"
             create_archive(args.format, archive_path, tmp_dir, args.password)
         record(manifest, sha384sum(archive_path), archive_path.name)
     finish(out, manifest)
